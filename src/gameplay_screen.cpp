@@ -20,6 +20,17 @@
 
 using namespace Rayutils;
 
+static void shuffle(std::vector<int>& vec, size_t seed) {
+    Random::seed(seed);
+    for (int i = 0; i < vec.size(); i++) {
+        std::swap(vec[i], vec[Random::geti(i, vec.size() - 1)]);
+    }
+}
+
+static bool isEven(int x) {
+    return (x & 1) == 0;
+}
+
 GameplayScreen::GameplayScreen(int fieldSize, float roundtime, int colors, float misspenalty) :field(fieldSize* fieldSize), roundtime{ roundtime }, misspenalty{ misspenalty }, fieldSize{ fieldSize },
 currentSeed(seedLenght, 0), timer{ roundtime }, colors{ colors } {
     if (Settings::useCustomCursor) {
@@ -206,10 +217,6 @@ void GameplayScreen::Draw() {
     GuiLabel(misscountLabel, misscountString.c_str());
     GuiSetStyle(DEFAULT, TEXT_SIZE, defaultFontSize);
 
-    auto isEven = [](int x) -> bool {
-        return (x & 1) == 0;
-        };
-
     //Field background
     for (int y = 0; y < fieldSize; y++)
         for (int x = 0; x < fieldSize; x++) {
@@ -302,21 +309,27 @@ void GameplayScreen::Reset() {
     }
 
     auto seed = std::hash<std::string>{}(currentSeed);
-    Random::seed(seed);
+
+    int tilesForColor = static_cast<int>(field.size() * 0.8) / colors;
+    if (!isEven(tilesForColor) && tilesForColor > 0) {
+        tilesForColor -= 1;
+    }
+    std::vector<int> colorsVec(field.size());
+    int k = 0;
+    for (int i = 1; i <= colors; i++) {
+        for (int j = 0; j < tilesForColor; j++) {
+            colorsVec[k++] = i;
+        }
+    }
+    shuffle(colorsVec, seed);
 
     removingTilesPosition.clear();
     trailColor.clear();
-    std::uniform_int_distribution<int> dist{ 0, 2 }; 	//The chance for a color tile is 66% 
-    std::uniform_int_distribution<int> colorDist{ 1, colors };
     for (int i = 0; i < field.size(); i++) {
-        int isColor = dist(Random::mt);
-        if (!isColor) {
-            field[i].color = 0;
+        field[i].isActive = true;
+        field[i].color = colorsVec[i];
+        if (!field[i].color) {
             field[i].isActive = false;
-        }
-        else {
-            field[i].color = colorDist(Random::mt);
-            field[i].isActive = true;
         }
     }
 
