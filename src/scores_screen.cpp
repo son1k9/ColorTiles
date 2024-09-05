@@ -44,9 +44,7 @@ void ScoresScreen::Draw() {
     constexpr auto marginLeft = 5;
 
     GuiSetStyle(DEFAULT, TEXT_SIZE, fontsize);
-    GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, ColorToInt(BLACK));
     GuiSetStyle(DEFAULT, BORDER_WIDTH, 1);
-    GuiSetStyle(DEFAULT, BORDER_COLOR_NORMAL, ColorToInt(BLACK));
 
     int width = Rayutils::GetDisplayWidth();
     int height = Rayutils::GetDisplayHeight();
@@ -54,7 +52,7 @@ void ScoresScreen::Draw() {
     Rectangle panelRec = { (width - 800) / 2, (height - 600) / 2, 800, 600 };
     Rectangle panelContentRec = { (width - 800) / 2 + 2, (height - 600) / 2, 800 - 4, 600 };
 
-    ClearBackground(RAYWHITE);
+    ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
 
     panelContentRec.height = fontsize * scores.size();
     GuiScrollPanel(panelRec, "Scores", panelContentRec, &panelScroll, &panelView);
@@ -65,9 +63,13 @@ void ScoresScreen::Draw() {
         std::ostringstream oss;
         oss << std::put_time(time, "%d.%m.%Y %H:%M:%S");
         const std::string scoreStr = oss.str() + std::format(" {}", score.value);
-        DrawText(scoreStr.c_str(), panelRec.x + panelScroll.x + marginLeft, panelRec.y + panelScroll.y + count * (fontsize + gap), fontsize, BLACK);
+        const Rectangle scoreLabel{ panelRec.x + panelScroll.x + marginLeft,
+            panelRec.y + panelScroll.y + count * (fontsize + gap),
+            panelRec.x + panelScroll.x + marginLeft + 300,
+            fontsize };
+        GuiLabel(scoreLabel, scoreStr.c_str());
         if (GuiButton({ panelRec.x + panelScroll.x + marginLeft + 300, panelRec.y + panelScroll.y + count * (fontsize + gap), static_cast<float>(MeasureText("Replay", 20)), fontsize + 2 }, "Replay")) {
-            std::cout<<"Clicked score: " << scoreStr << "\n";
+            std::cout << "Clicked score: " << scoreStr << "\n";
             LoadScoreReplay(score, path);
             RequestReplay(std::move(score));
         }

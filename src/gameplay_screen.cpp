@@ -69,7 +69,7 @@ void GameplayScreen::Update() {
     }
     else if ((currentTickIndex < replay.replayData.size()) && (GetTime() - resetTime > currentTickIndex * ticktime)) {
         const auto& tick = replay.replayData[currentTickIndex];
-        mousePosition = { tick.mousePosition.x * width, tick.mousePosition.y * height};
+        mousePosition = { tick.mousePosition.x * width, tick.mousePosition.y * height };
         mouseRelease = tick.isRelease;
         currentTickIndex++;
     }
@@ -124,8 +124,6 @@ void GameplayScreen::Update() {
 void GameplayScreen::Draw() {
     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
     GuiSetStyle(DEFAULT, BORDER_WIDTH, 2);
-    GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, ColorToInt(BLACK));
-    GuiSetStyle(DEFAULT, BORDER_COLOR_NORMAL, ColorToInt(BLACK));
 
     const Settings::Skin& skin = *Settings::skin;
     width = GetDisplayWidth();
@@ -140,13 +138,13 @@ void GameplayScreen::Draw() {
     fieldBottomRight.y = fieldSize * tileSize + fieldTopLeft.y;
 
     //Background
-    ClearBackground(RAYWHITE);
+    ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
     DrawFullTexture(skin.Background(), { .x = 0, .y = 0, .width = (float)width, .height = (float)height });
 
     //Border
     constexpr int borderThickness = 3;
     Rectangle border{ fieldTopLeft.x - borderThickness, fieldTopLeft.y - borderThickness, fieldBottomRight.x - fieldTopLeft.x + 2 * borderThickness, fieldBottomRight.y - fieldTopLeft.y + 2 * borderThickness };
-    DrawRectangleLinesEx(border, 3, BLACK);
+    DrawRectangleLinesEx(border, 3, GetColor(GuiGetStyle(DEFAULT, BORDER_COLOR_NORMAL)));
 
     //Timer
     const int spaceRight = width - fieldBottomRight.x;
@@ -156,11 +154,17 @@ void GameplayScreen::Draw() {
     Rectangle timeBar{ 0.025 * spaceRight, fieldTopLeft.y - borderThickness, (timer.TimeLeft() / roundtime) * timeBarWidth, timebarHeight };
     DrawRectangleRec(timeBar, RED);
     timeBar.width = timeBarWidth;
-    DrawRectangleLinesEx(timeBar, 2, BLACK);
-    DrawText(std::to_string((int)round(timer.TimeLeft())).c_str(), 0.025 * spaceRight + timeBarWidth + 5, fieldTopLeft.y - borderThickness, 20, RED);
+    DrawRectangleLinesEx(timeBar, 2, GetColor(GuiGetStyle(DEFAULT, BORDER_COLOR_NORMAL)));
+    const Rectangle timerLabel{ 0.025 * spaceRight + timeBarWidth + 5, fieldTopLeft.y - borderThickness, 40, 20 };
+    const int defaultFontColor = GuiGetStyle(DEFAULT, TEXT_COLOR_NORMAL);
+    const std::string timerStr = std::to_string((int)round(timer.TimeLeft()));
+    GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, ColorToInt(RED));
+    GuiLabel(timerLabel, timerStr.c_str());
+    GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, defaultFontColor);
 
     //Seed
-    DrawText("Current seed:", 0.025 * spaceRight, (float)fieldTopLeft.y - borderThickness + timebarHeight + 20, 20, BLACK);
+    const Rectangle seedLable{ 0.025 * spaceRight, (float)fieldTopLeft.y - borderThickness + timebarHeight + 20, spaceRight - 0.025 * spaceRight , 20 };
+    GuiLabel(seedLable, "Current seed:");
     if (GuiTextBox(Rectangle{ 0.025f * spaceRight, (float)fieldTopLeft.y - borderThickness + timebarHeight + 40, (float)timeBarWidth - 120, 30 }, seedInputBuffer, sizeof(seedInputBuffer), seedEditMod && !replayMode)) {
         if (!seedEditMod) {
             regenerateOnReset = false;
@@ -191,10 +195,16 @@ void GameplayScreen::Draw() {
     }
 
     //Score
-    std::string scoreString = std::format("Score: {}", score.value);
-    DrawText(scoreString.c_str(), width - MeasureText(scoreString.c_str(), 40) - 0.1 * spaceRight, fieldTopLeft.y - borderThickness, 40, BLACK);
-    std::string misscountString = std::format("Miss cound: {}", score.misscount);
-    DrawText(misscountString.c_str(), width - MeasureText(scoreString.c_str(), 40) - 0.1 * spaceRight, fieldTopLeft.y - borderThickness + 40, 40, BLACK);
+    const int defaultFontSize = GuiGetStyle(DEFAULT, TEXT_SIZE);
+    GuiSetStyle(DEFAULT, TEXT_SIZE, 40);
+    const std::string scoreString = std::format("Score: {}", score.value);
+    const Rectangle scoreLabel{ width - 0.9 * spaceRight, fieldTopLeft.y - borderThickness, spaceRight, 40 };
+    GuiLabel(scoreLabel, scoreString.c_str());
+
+    const std::string misscountString = std::format("Miss count: {}", score.misscount);
+    const Rectangle misscountLabel{ width - 0.9 * spaceRight, fieldTopLeft.y - borderThickness + 40, spaceRight, 40 };
+    GuiLabel(misscountLabel, misscountString.c_str());
+    GuiSetStyle(DEFAULT, TEXT_SIZE, defaultFontSize);
 
     auto isEven = [](int x) -> bool {
         return (x & 1) == 0;
