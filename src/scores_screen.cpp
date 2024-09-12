@@ -1,4 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
+#include<algorithm>
 #include <iostream>
 #include <exception>
 #include <filesystem>
@@ -30,6 +31,9 @@ ScoresScreen::ScoresScreen() {
             }
         }
     }
+    std::sort(scores.begin(), scores.end(), [](const std::pair<Score, std::string>& pair, const std::pair<Score, std::string>& pair2){
+        return pair.first.date > pair2.first.date;
+    });
 }
 
 void ScoresScreen::Update() {

@@ -145,7 +145,7 @@ Settings::Skin::Skin(const std::string& skinName) : name{ skinName } {
         }
         };
 
-    loadTexture(background, "BackgroundImage.png");
+    background = LoadTexture("BackgroundImage.png");
     std::string tilePath;
     for (int i = 0; i < 10; i++) {
         tilePath = std::format("ColorTile{}.png", i);
