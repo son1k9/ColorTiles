@@ -150,9 +150,7 @@ void GameplayScreen::Draw() {
 
     //Background
     ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
-    if (skin.Background().id > 0) {
-        DrawFullTexture(skin.Background(), { .x = 0, .y = 0, .width = (float)width, .height = (float)height });
-    }
+    DrawFullTexture(skin.Background(), { .x = 0, .y = 0, .width = (float)width, .height = (float)height });
 
     //Border
     constexpr int borderThickness = 3;
