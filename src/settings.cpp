@@ -125,7 +125,7 @@ std::unique_ptr<Skin> Settings::TryLoadSkin(const std::string& skinName) {
     catch (...) {
         std::string error = std::format("Could not open {} skin", skinName);
         fs::current_path("..\\..\\");
-        throw std::runtime_error(error);
+        return nullptr;
     }
     fs::current_path("..\\..\\");
     return std::make_unique<Skin>(skinName);
